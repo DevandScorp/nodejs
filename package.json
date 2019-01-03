@@ -1,0 +1,36 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node dist/user/index.js",
+    "build": "babel user/index.js -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevandScorp/nodejs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DevandScorp/nodejs/issues"
+  },
+  "homepage": "https://github.com/DevandScorp/nodejs#readme",
+  "dependencies": {
+    "debug": "^4.1.1",
+    "express": "^4.16.4",
+    "inspect": "0.0.2",
+    "node-fetch": "^2.3.0",
+    "supervisor": "^0.12.0",
+    "winston": "^3.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}
