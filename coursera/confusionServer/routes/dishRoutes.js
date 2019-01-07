@@ -1,26 +1,44 @@
+/* eslint-disable no-console */
 const express = require('express');
 const bodyParser = require('body-parser');
+// eslint-disable-next-line no-unused-vars
+const mongoose = require('mongoose');
+const Dishes = require('../models/dishes');
 
 const dishRouter = express.Router();
 dishRouter.use(bodyParser.json());
 dishRouter.route('/')
-  .all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();// продолжит искать все,что связано с dishes
-  })
   .get((req, res, next) => {
-    // предыдущие команды по установлению header и статуса передадутся сюда
-    res.end('Will send all the dishes to you!');
+    Dishes.find({})
+      .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+      }, err => next(err))
+      .catch(err => next(err));
   })
   .post((req, res, next) => {
-    res.end(`Will add the dish: ${req.body.name} with details: ${req.body.description}`);
+    console.log(req.body);
+    Dishes.create(req.body)
+      .then((dish) => {
+        console.log('Dish created', dish);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+      }, err => next(err))
+      .catch(err => next(err));
   })
-  .put((req, res, next) => {
+  .put((req, res) => {
     res.statusCode = 403;// operation not supported
     res.end('PUT operation not supported on /dishes');
   })
   .delete((req, res, next) => {
-    res.end('Deleting all the dishes');
+    Dishes.deleteMany({})
+      .then((resp) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(resp);
+      }, err => next(err))
+      .catch(err => next(err));
   });
 module.exports = dishRouter;

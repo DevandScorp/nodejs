@@ -1,29 +1,46 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const Dishes = require('../models/dishes');
 
 const dishRouterById = express.Router();
 dishRouterById.use(bodyParser.json());
 dishRouterById.route('/:dishId')
-  .all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();// продолжит искать все,что связано с dishes
-  })
   .get((req, res, next) => {
-    res.end(`Will send the ${req.params.dishId} info`);
+    Dishes.findById(req.params.dishId)
+      .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+      }, err => next(err))
+      .catch(err => next(err));
   })
-
   .post((req, res, next) => {
     res.statusCode = 403;// operation not supported
     res.end('POST operation not supported on /dishes:dishId');
   })
-
+// запросы выглядят как {"label" : "hot"}
+// и так можно изменять состояния полей
+// можно менять несколько полей
   .put((req, res, next) => {
-    res.write(`Updating the dish ${req.params.dishId} `);
-    res.end(`Will update the dish ${req.body.name} with details ${req.body.description}`);
+    Dishes.findByIdAndUpdate(req.params.dishId, {
+      $set: req.body,
+    }, { new: true })
+      .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+      }, err => next(err))
+      .catch(err => next(err));
   })
 
   .delete((req, res, next) => {
-    res.end('Deleting all the dishes');
+    Dishes.findByIdAndRemove(req.params.dishId)
+      .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+      }, err => next(err))
+      .catch(err => next(err));
   });
 module.exports = dishRouterById;
