@@ -1,3 +1,5 @@
+/* eslint-disable no-lonely-if */
+/* eslint-disable no-buffer-constructor */
 /* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
 const createError = require('http-errors');
@@ -29,8 +31,47 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('123456'));// secret key for cookies
+// basic authentication
+function auth(req, res, next) {
+  console.log(req.signedCookies);
+  if (!req.signedCookies.user) {
+    // заставляем авторизироваться,если его нет
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      const err = new Error('You are not authentificated');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      next(err);
+    }
+    const authorizationData = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+    const username = authorizationData[0];
+    const password = authorizationData[1];
+
+    if (username === 'admin' && password === 'password') {
+      // добавляем куки
+      res.cookie('user', 'admin', { signed: true });
+      next();
+    } else {
+      const err = new Error('You are not authentificated');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      next(err);
+    }
+  } else if (req.signedCookies.user === 'admin') {
+    next();
+  } else {
+    const err = new Error('You are not authentificated');
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    next(err);
+  }
+}
+app.use(auth); // authentication
+
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
