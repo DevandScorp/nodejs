@@ -8,6 +8,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const Dishes = require('./models/dishes');
 
 const url = 'mongodb://localhost:27017/conFusion';
@@ -31,11 +33,20 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('123456'));// secret key for cookies
+// session сам работает с кукисами
+// с помощью fileStore ты создаешь файлы с кукисами
+app.use(session({
+  name: 'session-id',
+  secret: '123456',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore(),
+}));
+// app.use(cookieParser('123456'));// secret key for cookies
 // basic authentication
 function auth(req, res, next) {
-  console.log(req.signedCookies);
-  if (!req.signedCookies.user) {
+  console.log(req.session);
+  if (!req.session.user) {
     // заставляем авторизироваться,если его нет
     const authHeader = req.headers.authorization;
 
@@ -51,7 +62,7 @@ function auth(req, res, next) {
 
     if (username === 'admin' && password === 'password') {
       // добавляем куки
-      res.cookie('user', 'admin', { signed: true });
+      req.session.user = 'admin';
       next();
     } else {
       const err = new Error('You are not authentificated');
@@ -59,7 +70,7 @@ function auth(req, res, next) {
       err.status = 401;
       next(err);
     }
-  } else if (req.signedCookies.user === 'admin') {
+  } else if (req.session.user === 'admin') {
     next();
   } else {
     const err = new Error('You are not authentificated');
