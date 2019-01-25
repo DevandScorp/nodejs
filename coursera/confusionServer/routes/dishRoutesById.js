@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Dishes = require('../models/dishes');
+const authenticate = require('../authentication');
 
 const dishRouterById = express.Router();
 dishRouterById.use(bodyParser.json());
@@ -23,7 +24,7 @@ dishRouterById.route('/:dishId')
 // запросы выглядят как {"label" : "hot"}
 // и так можно изменять состояния полей
 // можно менять несколько полей
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyUser, (req, res, next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, {
       $set: req.body,
     }, { new: true })
@@ -35,7 +36,7 @@ dishRouterById.route('/:dishId')
       .catch(err => next(err));
   })
 
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser, (req, res, next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
       .then((dish) => {
         res.statusCode = 200;

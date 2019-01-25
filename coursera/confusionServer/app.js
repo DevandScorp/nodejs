@@ -12,8 +12,9 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const passport = require('passport');
 const Dishes = require('./models/dishes');
+const config = require('./config');
 
-const url = 'mongodb://localhost:27017/conFusion';
+const url = config.mongoUrl;
 
 const connect = mongoose.connect(url, { useNewUrlParser: true });
 
@@ -25,7 +26,6 @@ const usersRouter = require('./routes/users');
 const dishRouter = require('./routes/dishRoutes');
 const dishRouterById = require('./routes/dishRoutesById');
 const promotionRouter = require('./routes/promotionsRoutes');
-const authenticate = require('./authentication');
 
 const app = express();
 
@@ -38,38 +38,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // session сам работает с кукисами
 // с помощью fileStore ты создаешь файлы с кукисами
-app.use(session({
-  name: 'session-id',
-  secret: '123456',
-  saveUninitialized: false,
-  resave: false,
-  store: new FileStore(),
-}));
 app.use(passport.initialize());
-app.use(passport.session());
 // app.use(cookieParser('123456'));// secret key for cookies
 // basic authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-function auth(req, res, next) {
-  console.log(req.user);
-
-  if (!req.user) {
-    const err = new Error('You are not authenticated!');
-    err.status = 403;
-    next(err);
-  } else {
-    next();
-  }
-}
-app.use(auth); // authentication
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/dishes', dishRouterById);
