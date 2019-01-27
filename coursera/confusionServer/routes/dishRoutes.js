@@ -35,7 +35,7 @@ dishRouter.route('/')
     res.statusCode = 403;// operation not supported
     res.end('PUT operation not supported on /dishes');
   })
-  .delete(authenticate.verifyUser, (req, res, next) => {
+  .delete(authenticateAdmin.verifyAdmin, (req, res, next) => {
     Dishes.deleteMany({})
       .then((resp) => {
         res.statusCode = 200;
