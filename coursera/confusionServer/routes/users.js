@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-shadow */
 /* eslint-disable object-shorthand */
 /* eslint-disable no-buffer-constructor */
@@ -8,15 +9,16 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const User = require('../models/user');
 const authenticate = require('../authentication');
+const cors = require('./cors');
 
 const router = express.Router();
 
 /* GET users listing. */
-router.get('/', (req, res, next) => {
+router.get('/', cors.corsWithOptions, (req, res, next) => {
   res.send('respond with a resource');
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', cors.corsWithOptions, (req, res, next) => {
   User.register(new User({ username: req.body.username, firstname: req.body.firstname, lastname: req.body.lastname }),
     req.body.password, (err, user) => {
       if (err) {
@@ -33,14 +35,21 @@ router.post('/signup', (req, res, next) => {
     });
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   // даем токен
   const token = authenticate.getToken({ _id: req.user._id });
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
   res.json({ success: true, token: token, status: 'You are successfully logged in!' });
 });
-
+router.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {
+  if (req.user) {
+    const token = authenticate.getToken({ _id: req.user._id });
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({ success: true, token: token, status: 'You are successfully logged in!' });
+  }
+});
 router.get('/logout', (req, res, next) => {
   if (req.session) {
     req.session.destroy();
